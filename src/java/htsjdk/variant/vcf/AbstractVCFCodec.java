@@ -208,7 +208,7 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
                     final VCFContigHeaderLine contig = new VCFContigHeaderLine(str.substring(9), version, VCFConstants.CONTIG_HEADER_START.substring(2), contigCounter++);
                     metaData.add(contig);
                 } else if ( str.startsWith(VCFConstants.ALT_HEADER_START) ) {
-                    final VCFSimpleHeaderLine alt = new VCFSimpleHeaderLine(str.substring(6), version, VCFConstants.ALT_HEADER_START.substring(2), Arrays.asList("ID", "Description"));
+                    final VCFAltHeaderLine alt = new VCFAltHeaderLine(str.substring(6), version);
                     metaData.add(alt);
                 } else {
                     int equals = str.indexOf('=');
