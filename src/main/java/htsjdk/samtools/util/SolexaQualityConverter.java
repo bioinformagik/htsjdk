@@ -24,7 +24,7 @@
 package htsjdk.samtools.util;
 
 /**
- * Optimized method for converting Solexa ASCII qualities into Phred scores.
+ * Optimized method for converting Solexa ASCII/PHRED qualities into Phred scores.
  * Pre-computes all values in order to eliminate repeated computation.
  */
 public class SolexaQualityConverter {
@@ -126,4 +126,25 @@ public class SolexaQualityConverter {
             solexaQuals[i] -= SOLEXA_ADDEND;
         }
     }
+
+    /**
+     * Convert a solexa quality (binary phred scores, not ASCII) to standard phred score
+     */
+    public byte solexaPhredToStandard(final byte solexaQuality) {
+        final byte solexaChar = (byte) (33 + solexaQuality);
+        // check range of PHRED score
+        return phredScore[solexaChar];
+    }
+
+    /**
+     * Decodes an array of solexa quality (binary phred scores, not ASCII) to standard phred score
+     * Decode in place in order to avoid extra object allocation.
+     */
+    public void convertIlluminaQualitiesToStandard(final byte[] solexaQuals) {
+        for(int i = 0; i < solexaQuals.length; i++) {
+            solexaQuals[i] = solexaPhredToStandard(solexaQuals[i]);
+        }
+    }
+
+
 }
