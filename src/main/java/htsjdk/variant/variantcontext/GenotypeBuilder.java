@@ -188,9 +188,12 @@ public final class GenotypeBuilder {
      * Create a new Genotype object using the values set in this builder.
      *
      * After creation the values in this builder can be modified and more Genotypes
-     * created
+     * created, althrough the contents of array values like PL should never be modified
+     * inline as they are not copied for efficiency reasons.
      *
-     * Note: if attributes are added via this builder after a call to make(), the new Genotype will be modified
+     * Note: if attributes are added via this builder after a call to make(), the new Genotype will
+     * be modified. Use {@link #makeWithShallowCopy} to safely re-use the same builder object
+     * multiple times.
      *
      * @return a newly minted Genotype object with values provided from this builder
      */
@@ -204,8 +207,7 @@ public final class GenotypeBuilder {
      * shallow copy of reference types to allow safer re-use of this builder
      *
      * After creation the values in this builder can be modified and more Genotypes
-     * created
-     * inline as they are not copied for efficiency reasons.
+     * created.
      *
      * @return a newly minted Genotype object with values provided from this builder
      */
