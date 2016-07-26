@@ -74,4 +74,36 @@ public final class QualityUtil {
 
         return sum;
     }
+
+    /**
+     * Tweak overlapping qualities as samtools does in the mpileup command: if the bases match,
+     * the first quality is the sum of both (capped to 200); if the bases mismatch, the one with the
+     * highest quality is reduced 20% of its quality. In any case, the base with the lowest quality
+     * is reduced to 0.
+     *
+     * @param firstBase the first base
+     * @param secondBase the second base
+     * @param firstQuality the quality for the first base
+     * @param secondQuality the quality for the second base
+     * @return tuple with the tweak quality for the first base (a) and second base (b)
+     */
+    public static Tuple<Integer, Integer> tweakOverlappingQualities(byte firstBase, byte secondBase, int firstQuality, int secondQuality) {
+        int newFirst = 0, newSecond = 0;
+        if(firstBase == secondBase) {
+            // we are very confident about this base
+            newFirst = firstQuality + secondQuality;
+            if(newFirst > 200) {
+                newFirst = (byte) 200;
+            }
+        } else {
+            // not so confident about a_qual anymore given the mismatch
+            if(firstQuality >= secondQuality) {
+                newFirst  = (int) (0.8 * firstQuality);
+            } else {
+                newSecond = (int) (0.8 * secondQuality);
+            }
+        }
+        return new Tuple<>(newFirst, newSecond);
+    }
+
 }

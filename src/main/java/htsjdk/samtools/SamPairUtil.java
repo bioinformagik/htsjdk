@@ -25,6 +25,8 @@
 package htsjdk.samtools;
 
 import htsjdk.samtools.util.PeekableIterator;
+import htsjdk.samtools.util.QualityUtil;
+import htsjdk.samtools.util.Tuple;
 
 import java.util.*;
 
@@ -85,25 +87,11 @@ public class SamPairUtil {
         for(int i = 0; i < basesToTweak; i ++) {
             // j is the base for the first pair
             final int j = startForFirst + i;
-            final byte firstBase = firstOfPair.getReadBases()[j];
-            final byte secondBase = secondOfPair.getReadBases()[i];
-            if(firstBase == secondBase) {
-                // we are very confident about this base
-                newFirstQualities[j] = (byte) (newFirstQualities[j] + newSecondQualities[i]);
-                if(newFirstQualities[j] > 200) {
-                    newFirstQualities[j] = (byte) 200;
-                }
-                newSecondQualities[i] = 0; // TODO: check if this is correct
-            } else {
-                // not so confident about a_qual anymore given the mismatch
-                if(newFirstQualities[j] >= newSecondQualities[i]) {
-                    newFirstQualities[j] = (byte)(0.8 * newFirstQualities[j]);
-                    newSecondQualities[i] = 0;
-                } else {
-                    newSecondQualities[i] = (byte)(0.8 * newSecondQualities[i]);
-                    newFirstQualities[j] = 0;
-                }
-            }
+            final Tuple<Integer, Integer> tweaked = QualityUtil.tweakOverlappingQualities(
+                    firstOfPair.getReadBases()[j], secondOfPair.getReadBases()[i],
+                    newFirstQualities[i], newSecondQualities[j]);
+            newFirstQualities[i] = tweaked.a.byteValue();
+            newFirstQualities[j] = tweaked.b.byteValue();
         }
         firstOfPair.setBaseQualities(newFirstQualities);
         secondOfPair.setBaseQualities(newSecondQualities);
