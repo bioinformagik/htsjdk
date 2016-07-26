@@ -1456,7 +1456,7 @@ public class VariantContext implements Feature, Serializable {
                 getSource(), contig + ":" + (start - stop == 0 ? start : start + "-" + stop),
                 hasLog10PError() ? String.format("%.2f", getPhredScaledQual()) : ".",
                 this.getType(),
-                ParsingUtils.sortList(this.getAlleles()),
+                this.getAlleles(),
                 ParsingUtils.sortedString(this.getAttributes()),
                 this.getGenotypes());
     }
@@ -1466,7 +1466,7 @@ public class VariantContext implements Feature, Serializable {
                 getSource(), contig + ":" + (start - stop == 0 ? start : start + "-" + stop),
                 hasLog10PError() ? String.format("%.2f", getPhredScaledQual()) : ".",
                 this.getType(),
-                ParsingUtils.sortList(this.getAlleles()),
+                this.getAlleles(),
                 ParsingUtils.sortedString(this.getAttributes()),
                 ((LazyGenotypesContext)this.genotypes).getUnparsedGenotypeData());
     }
@@ -1476,7 +1476,7 @@ public class VariantContext implements Feature, Serializable {
                 getSource(), contig + ":" + (start - stop == 0 ? start : start + "-" + stop),
                 hasLog10PError() ? String.format("%.2f", getPhredScaledQual()) : ".",
                 this.getType(),
-                ParsingUtils.sortList(this.getAlleles()),
+                this.getAlleles(),
                 ParsingUtils.sortedString(this.getAttributes()));
     }
 
