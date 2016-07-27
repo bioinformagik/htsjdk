@@ -179,6 +179,19 @@ public class VariantContextUnitTest extends VariantBaseTest {
         Assert.assertEquals(new ArrayList<Allele>(unnaturalVC.getAlleles()), allelesUnnaturalOrder);
     }
 
+
+    @Test
+    public void testMakeAllele() {
+        // This test shows that allele ordering is preserved in the constructor
+        final List<Allele> allelesNaturalOrder = Arrays.asList(Aref, C, T);
+        final List<Allele> allelesUnnaturalOrder = Arrays.asList(Aref, T, C);
+        Assert.assertEquals(VariantContext.makeAlleles(allelesNaturalOrder), allelesNaturalOrder);
+        Assert.assertEquals(VariantContext.makeAlleles(allelesUnnaturalOrder), allelesUnnaturalOrder);
+        // this is to check if it is preserve is the reference is not the first
+        Assert.assertEquals(VariantContext.makeAlleles(Arrays.asList(C, T, Aref)), Arrays.asList(Aref, C, T));
+        Assert.assertEquals(VariantContext.makeAlleles(Arrays.asList(T, C, Aref)), Arrays.asList(Aref, T, C));
+    }
+
     @Test
     public void testCreatingSNPVariantContext() {
 

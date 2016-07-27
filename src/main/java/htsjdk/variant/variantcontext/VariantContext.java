@@ -1481,7 +1481,9 @@ public class VariantContext implements Feature, Serializable {
     }
 
     // protected basic manipulation routines
-    private static List<Allele> makeAlleles(Collection<Allele> alleles) {
+    // VariantContextUnitTest.testMakeAlleles ensures that the ordering og the alleles will be maintain while construction
+    protected static List<Allele> makeAlleles(Collection<Allele> alleles) {
+        // this array list ensures that the ordering of the alleles will be maintain while construction
         final List<Allele> alleleList = new ArrayList<Allele>(alleles.size());
 
         boolean sawRef = false;
