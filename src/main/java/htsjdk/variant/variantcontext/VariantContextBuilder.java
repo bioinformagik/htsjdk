@@ -154,6 +154,7 @@ public class VariantContextBuilder {
      * @return this builder
      */
     public VariantContextBuilder alleles(final Collection<Allele> alleles) {
+        // VariantContextBuilderTest.testMultipleSNPAlleleOrdering ensures that the ordering of the alleles will be maintain while reading
         this.alleles = alleles;
         toValidate.add(VariantContext.Validation.ALLELES);
         return this;

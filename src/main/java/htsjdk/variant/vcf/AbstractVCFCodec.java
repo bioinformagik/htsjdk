@@ -333,7 +333,9 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
         }
 
         // get our alleles, filters, and setup an attribute map
+        // AbstractVCFCodecTest.testMultipleSNPAlleleOrdering ensures that the orderin of the alleles will be maintain while reading
         final List<Allele> alleles = parseAlleles(ref, alts, lineNo);
+        // VariantContextUnitTest.testMultipleSNPAlleleOrdering ensures that the ordering of the alleles will be maintain while reading
         builder.alleles(alleles);
 
         // do we have genotyping data
@@ -526,6 +528,7 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
      * @return a list of alleles, and a pair of the shortest and longest sequence
      */
     protected static List<Allele> parseAlleles(String ref, String alts, int lineNo) {
+        // this array list ensures that the ordering of the alleles will be maintain while reading
         List<Allele> alleles = new ArrayList<Allele>(2); // we are almost always biallelic
         // ref
         checkAllele(ref, true, lineNo);

@@ -9,6 +9,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -33,6 +35,26 @@ public class AbstractVCFCodecTest extends VariantBaseTest {
 	@Test(expectedExceptions = TribbleException.class)
 	public void TestSpanDelParseAllelesException(){
 		List<Allele> list1 = VCF3Codec.parseAlleles(Allele.SPAN_DEL_STRING, "A", 0);
+	}
+
+	@DataProvider(name = "MultipleSNPs")
+	public Object[][] getMultipleSNPsData() {
+		return new Object[][] {
+				{"A", "T,C", Arrays.asList(Allele.create("A", true), Allele.create("T"), Allele.create("C"))},
+				{"A", "C,T", Arrays.asList(Allele.create("A", true), Allele.create("C"), Allele.create("T"))},
+				{"A", "G,C,T", Arrays.asList(Allele.create("A", true), Allele.create("G"), Allele.create("C"), Allele.create("T"))},
+				{"ATC", "G,AT", Arrays.asList(Allele.create("ATC", true), Allele.create("G"), Allele.create("AT"))},
+				{"G", "ATC,AT", Arrays.asList(Allele.create("G", true), Allele.create("ATC"), Allele.create("AT"))}
+		};
+	}
+
+	@Test(dataProvider = "MultipleSNPs")
+	public void testMultipleSNPAlleleOrdering(final String refString, final String alts, final List<Allele> expectedOrderedAlleles) {
+		final List<Allele> observed = VCF3Codec.parseAlleles(refString, alts, 0);
+		Assert.assertEquals(observed.size(), expectedOrderedAlleles.size());
+		for(int i = 0; i < expectedOrderedAlleles.size(); i++) {
+			Assert.assertEquals(observed.get(i), expectedOrderedAlleles.get(i));
+		}
 	}
 
 	@DataProvider(name="thingsToTryToDecode")

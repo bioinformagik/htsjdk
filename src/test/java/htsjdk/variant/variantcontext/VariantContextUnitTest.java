@@ -170,6 +170,7 @@ public class VariantContextUnitTest extends VariantBaseTest {
 
     @Test
     public void testMultipleSNPAlleleOrdering() {
+        // This test shows that allele ordering is preserved in the builder
         final List<Allele> allelesNaturalOrder = Arrays.asList(Aref, C, T);
         final List<Allele> allelesUnnaturalOrder = Arrays.asList(Aref, T, C);
         VariantContext naturalVC = snpBuilder.alleles(allelesNaturalOrder).make();
