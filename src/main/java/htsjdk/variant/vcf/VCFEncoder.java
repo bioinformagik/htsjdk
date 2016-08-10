@@ -85,7 +85,7 @@ public class VCFEncoder {
 			Allele altAllele = context.getAlternateAllele(0);
 			String alt = altAllele.getDisplayString();
 			stringBuilder.append(alt);
-
+			// iterating over the list ensures that the ordering of the alleles will be maintain while writing
 			for (int i = 1; i < context.getAlternateAlleles().size(); i++) {
 				altAllele = context.getAlternateAllele(i);
 				alt = altAllele.getDisplayString();
