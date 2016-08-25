@@ -87,11 +87,11 @@ public class SamPairUtil {
         for(int i = 0; i < basesToTweak; i ++) {
             // j is the base for the first pair
             final int j = startForFirst + i;
-            final Tuple<Integer, Integer> tweaked = QualityUtil.tweakOverlappingQualities(
+            final byte[] tweaked = QualityUtil.tweakOverlappingQualities(
                     firstOfPair.getReadBases()[j], secondOfPair.getReadBases()[i],
                     newFirstQualities[i], newSecondQualities[j]);
-            newFirstQualities[i] = tweaked.a.byteValue();
-            newFirstQualities[j] = tweaked.b.byteValue();
+            newFirstQualities[i] = tweaked[0];
+            newFirstQualities[j] = tweaked[1];
         }
         firstOfPair.setBaseQualities(newFirstQualities);
         secondOfPair.setBaseQualities(newSecondQualities);

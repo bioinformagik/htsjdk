@@ -76,18 +76,30 @@ public final class QualityUtil {
     }
 
     /**
-     * Tweak overlapping qualities as samtools does in the mpileup command: if the bases match,
-     * the first quality is the sum of both (capped to 200); if the bases mismatch, the one with the
-     * highest quality is reduced 20% of its quality. In any case, the base with the lowest quality
-     * is reduced to 0.
+     * Fix the quality of two bases that comes from an overlapping pair in the same way as samtools
+     * does.
+     *
+     *
+     * Setting the quality of one of the bases to 0 effectively remove the redundant base for calling.
+     * In addition, if the bases overlaps we have increased confidence if they agree (or reduced if
+     * they don't). Thus, the algorithm proceed as following:
+     *
+     * 1. If the bases are the same, the quality of the first element is the sum of both qualities
+     * (capped to 200) and the quality of the second is reduced to 0.
+     *
+     * 2. If the bases are different, the base with the highest quality is reduced with a factor
+     * of 0.8, and the quality of the lowest is reduced to 0.
+     *
+     * {@see tweak_overlap_quality function in <a href="https://github.com/samtools/htslib/blob/master/sam.c">samtools</a>}.
      *
      * @param firstBase the first base
      * @param secondBase the second base
      * @param firstQuality the quality for the first base
      * @param secondQuality the quality for the second base
+     *
      * @return tuple with the tweak quality for the first base (a) and second base (b)
      */
-    public static Tuple<Integer, Integer> tweakOverlappingQualities(byte firstBase, byte secondBase, int firstQuality, int secondQuality) {
+    public static byte[] tweakOverlappingQualities(byte firstBase, byte secondBase, int firstQuality, int secondQuality) {
         int newFirst = 0, newSecond = 0;
         if(firstBase == secondBase) {
             // we are very confident about this base
@@ -103,7 +115,7 @@ public final class QualityUtil {
                 newSecond = (int) (0.8 * secondQuality);
             }
         }
-        return new Tuple<>(newFirst, newSecond);
+        return new byte[]{(byte)newFirst, (byte)newSecond};
     }
 
 }

@@ -38,16 +38,16 @@ public class QualityUtilTest {
         final byte aBase = 'A';
         final byte tBase = 'T';
         return new Object[][] {
-                {aBase, aBase, 60, 10, 70,  0}, // same base, sum of qualities
-                {aBase, tBase, 60, 10, 48,  0}, // different base, 80% of quality for higher
-                {aBase, tBase, 60, 60, 48,  0},
-                {aBase, tBase, 10, 60,  0, 48}
+                {aBase, aBase, 60, 10, new byte[]{70,  0}}, // same base, sum of qualities
+                {aBase, tBase, 60, 10, new byte[]{48,  0}}, // different base, 80% of quality for higher
+                {aBase, tBase, 60, 60, new byte[]{48,  0}},
+                {aBase, tBase, 10, 60, new byte[]{ 0, 48}}
         };
     }
 
     @Test(dataProvider = "TweakOverlappingQualities")
-    public void testTweakOverlappingQualities(final byte base1, final byte base2, final int qual1, final int qual2, final int expectedQual1, final int expectedQual2) throws Exception {
-        Assert.assertEquals(QualityUtil.tweakOverlappingQualities(base1, base2, qual1, qual2), new Tuple<>(expectedQual1, expectedQual2));
+    public void testTweakOverlappingQualities(final byte base1, final byte base2, final int qual1, final int qual2, final byte[] expectedQuals) throws Exception {
+        Assert.assertEquals(QualityUtil.tweakOverlappingQualities(base1, base2, qual1, qual2), expectedQuals);
     }
 
 }
