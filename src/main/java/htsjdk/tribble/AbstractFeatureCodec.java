@@ -34,6 +34,8 @@ import java.io.IOException;
 public abstract class AbstractFeatureCodec<FEATURE_TYPE extends Feature, SOURCE> implements FeatureCodec<FEATURE_TYPE, SOURCE> {
     private final Class<FEATURE_TYPE> myClass;
 
+    protected final byte[] NO_HEADER_ENCODED = new byte[0];
+
     protected AbstractFeatureCodec(final Class<FEATURE_TYPE> myClass) {
         this.myClass = myClass;
     }

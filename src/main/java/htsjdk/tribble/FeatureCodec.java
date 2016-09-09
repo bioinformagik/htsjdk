@@ -69,6 +69,26 @@ public interface FeatureCodec<FEATURE_TYPE extends Feature, SOURCE> {
     public FeatureCodecHeader readHeader(final SOURCE source) throws IOException;
 
     /**
+     * Encodes the header into bytes[] to write.
+     *
+     * @return the header encoded as an array of bytes to write; an empty array if does not contain header.
+     */
+    // TODO: probably this shouldn't be default
+    default public byte[] encodeHeader(FeatureCodecHeader header) {
+        throw new TribbleException(this.getClass().getSimpleName() + " does not have defined encoding for the header");
+    }
+
+    /**
+     * Encodes a feature into bytes[] to write.
+     *
+     * @return the feature encoded as an array of bytes to write.
+     */
+    // TODO: probably this shouldn't be default
+    default public byte[] encode(FEATURE_TYPE feature) {
+        throw new TribbleException(this.getClass().getSimpleName() + " does not have defined encoding for the features");
+    }
+
+    /**
      * <p>
      * This function returns the object the codec generates.  This is allowed to be Feature in the case where
      * conditionally different types are generated.  Be as specific as you can though.

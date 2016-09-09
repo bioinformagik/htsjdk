@@ -25,11 +25,13 @@ package htsjdk.tribble.bed;
 
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
+import htsjdk.tribble.FeatureCodecHeader;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.util.ParsingUtils;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /**
@@ -43,6 +45,8 @@ public class BEDCodec extends AsciiFeatureCodec<BEDFeature> {
 
     /** Default extension for BED files. */
     public static final String BED_EXTENSION = ".bed";
+
+    private static final String DEFAULT_BED_SEPARATOR = "\t";
 
     private static final Pattern SPLIT_PATTERN = Pattern.compile("\\t|( +)");
     private final int startOffsetValue;
@@ -233,6 +237,25 @@ public class BEDCodec extends AsciiFeatureCodec<BEDFeature> {
         public int value() {
             return this.start;
         }
+    }
+
+    /** This implementation only encodes the location (contig, start and end).
+     */
+    @Override
+    public String encodeAsString(final BEDFeature feature) {
+        return String.join(DEFAULT_BED_SEPARATOR, Arrays.asList(
+                feature.getContig(), String.valueOf(feature.getStart() - startOffsetValue),
+                String.valueOf(feature.getEnd())
+        ));
+    }
+
+    /**
+     * The simple BED feature does not allow encoding of the string.
+     * @return {@code null}
+     */
+    @Override
+    public String encodeHeaderAsString(FeatureCodecHeader header) {
+        return null;
     }
 
     @Override

@@ -77,6 +77,10 @@ public abstract class AsciiFeatureCodec<T extends Feature> extends AbstractFeatu
     /** @see AsciiFeatureCodec#decode(htsjdk.tribble.readers.LineIterator) */
     public abstract T decode(String s);
 
+    /**
+     * Assumes that there is no header.
+     * @see AsciiFeatureCodec#readActualHeader(LineIterator)
+     */
     @Override
     public FeatureCodecHeader readHeader(final LineIterator lineIterator) throws IOException {
         // TODO: Track header end here, rather than assuming there isn't one.
@@ -89,4 +93,46 @@ public abstract class AsciiFeatureCodec<T extends Feature> extends AbstractFeatu
      * @return the actual header data in the file, or null if none is available
      */
     abstract public Object readActualHeader(final LineIterator reader);
+
+    /**
+     * Default implementation calls {@link #encodeHeaderAsString(FeatureCodecHeader)} and getBytes.
+     *
+     * @return {@link #NO_HEADER_ENCODED} if {@link #encodeHeaderAsString(FeatureCodecHeader)}
+     * or {@link FeatureCodecHeader#getHeaderEnd()} does not have end; the bytes of the header otherwise.
+     */
+    @Override
+    public byte[] encodeHeader(FeatureCodecHeader header) {
+        if (header.getHeaderEnd() == FeatureCodecHeader.NO_HEADER_END) {
+            return NO_HEADER_ENCODED;
+        }
+        final String headerString = encodeHeaderAsString(header);
+        return (headerString == null) ? encodeHeaderAsString(header).getBytes() : NO_HEADER_ENCODED;
+    }
+
+    /**
+     * Default implementation calls {@link #encodeAsString(Feature)} and getBytes.
+     */
+    @Override
+    public byte[] encode(T feature) {
+        return encodeAsString(feature).getBytes();
+    }
+
+    /**
+     * Encodes the feature as a String.
+     * @throws TribbleException as default implementation
+     */
+    // TODO: probably this should be abstract, but I don't want to break compatibility
+    public String encodeAsString(T feature) {
+        throw new TribbleException(this.getClass().getSimpleName() + " does not implement an encoder");
+    }
+
+    /**
+     * Encodes the header as a String. {@code null} if no header is encoded.
+     * @return {@code null} as default implementation
+     */
+    // TODO: probably this should be abstract, but I don't want to break compatibility
+    public String encodeHeaderAsString(FeatureCodecHeader header) {
+        return null;
+    }
+
 }
