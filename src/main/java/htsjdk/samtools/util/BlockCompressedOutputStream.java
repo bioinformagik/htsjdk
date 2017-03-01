@@ -28,6 +28,8 @@ import htsjdk.samtools.util.zip.DeflaterFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 
@@ -110,7 +112,7 @@ public class BlockCompressedOutputStream
     // so just use JDK standard.
     private final Deflater noCompressionDeflater = new Deflater(Deflater.NO_COMPRESSION, true);
     private final CRC32 crc32 = new CRC32();
-    private File file = null;
+    private Path path = null;
     private long mBlockAddress = 0;
 
 
@@ -157,11 +159,30 @@ public class BlockCompressedOutputStream
     /**
      * Prepare to compress at the given compression level
      * @param compressionLevel 1 <= compressionLevel <= 9
+     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
+     * Use {@link #BlockCompressedOutputStream(Path, int, DeflaterFactory)} to specify a custom factory.
+     */
+    public BlockCompressedOutputStream(final Path path, final int compressionLevel) {
+        this(path, compressionLevel, defaultDeflaterFactory);
+    }
+
+    /**
+     * Prepare to compress at the given compression level
+     * @param compressionLevel 1 <= compressionLevel <= 9
      * @param deflaterFactory custom factory to create deflaters (overrides the default)
      */
     public BlockCompressedOutputStream(final File file, final int compressionLevel, final DeflaterFactory deflaterFactory) {
-        this.file = file;
-        codec = new BinaryCodec(file, true);
+        this(file.toPath(), compressionLevel, deflaterFactory);
+    }
+
+    /**
+     * Prepare to compress at the given compression level
+     * @param compressionLevel 1 <= compressionLevel <= 9
+     * @param deflaterFactory custom factory to create deflaters (overrides the default)
+     */
+    public BlockCompressedOutputStream(final Path path, final int compressionLevel, final DeflaterFactory deflaterFactory) {
+        this.path = path;
+        codec = new BinaryCodec(path, true);
         deflater = deflaterFactory.makeDeflater(compressionLevel, true);
         log.debug("Using deflater: " + deflater.getClass().getSimpleName());
     }
@@ -178,11 +199,30 @@ public class BlockCompressedOutputStream
     }
 
     /**
+     * Uses default compression level, which is 5 unless changed by setCompressionLevel
+     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
+     * Use {@link #BlockCompressedOutputStream(OutputStream, Path, int, DeflaterFactory)} to specify a custom factory.
+     *
+     * @param path may be null
+     */
+    public BlockCompressedOutputStream(final OutputStream os, final Path path) {
+        this(os, path, defaultCompressionLevel);
+    }
+
+    /**
      * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
      * Use {@link #BlockCompressedOutputStream(OutputStream, File, int, DeflaterFactory)} to specify a custom factory.
      */
     public BlockCompressedOutputStream(final OutputStream os, final File file, final int compressionLevel) {
         this(os, file, compressionLevel, defaultDeflaterFactory);
+    }
+
+    /**
+     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
+     * Use {@link #BlockCompressedOutputStream(OutputStream, Path, int, DeflaterFactory)} to specify a custom factory.
+     */
+    public BlockCompressedOutputStream(final OutputStream os, final Path path, final int compressionLevel) {
+        this(os, path, compressionLevel, defaultDeflaterFactory);
     }
 
     /**
@@ -193,10 +233,21 @@ public class BlockCompressedOutputStream
      * @param deflaterFactory custom factory to create deflaters (overrides the default)
      */
     public BlockCompressedOutputStream(final OutputStream os, final File file, final int compressionLevel, final DeflaterFactory deflaterFactory) {
-        this.file = file;
+        this(os, file.toPath(), compressionLevel, deflaterFactory);
+    }
+
+    /**
+     * Creates the output stream.
+     * @param os output stream to create a BlockCompressedOutputStream from
+     * @param path path to which to write the output or null if not available
+     * @param compressionLevel the compression level (0-9)
+     * @param deflaterFactory custom factory to create deflaters (overrides the default)
+     */
+    public BlockCompressedOutputStream(final OutputStream os, final Path path, final int compressionLevel, final DeflaterFactory deflaterFactory) {
+        this.path = path;
         codec = new BinaryCodec(os);
-        if (file != null) {
-            codec.setOutputFileName(file.getAbsolutePath());
+        if (path != null) {
+            codec.setOutputFileName(path.getFileName().toString());
         }
         deflater = deflaterFactory.makeDeflater(compressionLevel, true);
         log.debug("Using deflater: " + deflater.getClass().getSimpleName());
@@ -282,10 +333,10 @@ public class BlockCompressedOutputStream
         codec.writeBytes(BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK);
         codec.close();
         // Can't re-open something that is not a regular file, e.g. a named pipe or an output stream
-        if (this.file == null || !this.file.isFile()) return;
-        if (BlockCompressedInputStream.checkTermination(this.file) !=
+        if (this.path == null || !Files.isRegularFile(this.path)) return;
+        if (BlockCompressedInputStream.checkTermination(this.path) !=
                 BlockCompressedInputStream.FileTermination.HAS_TERMINATOR_BLOCK) {
-            throw new IOException("Terminator block not found after closing BGZF file " + this.file);
+            throw new IOException("Terminator block not found after closing BGZF file " + this.path);
         }
     }
 

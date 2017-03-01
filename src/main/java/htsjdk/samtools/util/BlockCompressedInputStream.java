@@ -29,6 +29,7 @@ import htsjdk.samtools.SAMException;
 import htsjdk.samtools.seekablestream.SeekableBufferedStream;
 import htsjdk.samtools.seekablestream.SeekableFileStream;
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
+import htsjdk.samtools.seekablestream.SeekablePathStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.util.zip.InflaterFactory;
 
@@ -36,12 +37,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.zip.Inflater;
 
 /**
  * Utility class for reading BGZF block compressed files.  The caller can treat this file like any other InputStream.
@@ -147,6 +148,27 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
      */
     public BlockCompressedInputStream(final URL url, final InflaterFactory inflaterFactory) {
         mFile = new SeekableBufferedStream(new SeekableHTTPStream(url));
+        mStream = null;
+        blockGunzipper = new BlockGunzipper(inflaterFactory);
+    }
+
+    /**
+     * Use this ctor if you wish to call seek()
+     * @param path source of bytes
+     * @throws IOException
+     */
+    public BlockCompressedInputStream(final Path path) throws IOException {
+        this(path, BlockGunzipper.getDefaultInflaterFactory());
+    }
+
+    /**
+     * Use this ctor if you wish to call seek()
+     * @param path source of bytes
+     * @param inflaterFactory {@link InflaterFactory} used by {@link BlockGunzipper}
+     * @throws IOException
+     */
+    public BlockCompressedInputStream(final Path path, final InflaterFactory inflaterFactory) throws IOException {
+        mFile = new SeekablePathStream(path);
         mStream = null;
         blockGunzipper = new BlockGunzipper(inflaterFactory);
     }
@@ -588,11 +610,15 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
     public enum FileTermination {HAS_TERMINATOR_BLOCK, HAS_HEALTHY_LAST_BLOCK, DEFECTIVE}
 
     public static FileTermination checkTermination(final File file) throws IOException {
-        final long fileSize = file.length();
+        return checkTermination(file.toPath());
+    }
+
+    public static FileTermination checkTermination(final Path file) throws IOException {
+        final long fileSize = Files.size(file);
         if (fileSize < BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK.length) {
             return FileTermination.DEFECTIVE;
         }
-        final RandomAccessFile raFile = new RandomAccessFile(file, "r");
+        final SeekableStream raFile = new SeekablePathStream(file);
         try {
             raFile.seek(fileSize - BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK.length);
             byte[] buf = new byte[BlockCompressedStreamConstants.EMPTY_GZIP_BLOCK.length];
