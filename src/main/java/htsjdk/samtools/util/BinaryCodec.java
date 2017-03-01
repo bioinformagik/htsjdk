@@ -35,6 +35,8 @@ import java.io.OutputStream;
 import java.io.SyncFailedException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Encapsulates file representation of various primitive data types.  Forces little-endian disk representation.
@@ -91,25 +93,37 @@ public class BinaryCodec implements Closeable {
     //////////////////////////////////////////////////
 
     /**
+     * Constructs BinaryCodec from a path and set it's mode to writing or not
+     *
+     * @param path    path to be written to or read from
+     * @param writing whether the file is being written to
+     */
+    public BinaryCodec(final Path path, final boolean writing) {
+        this();
+        try {
+            this.isWriting = writing;
+            if (this.isWriting) {
+                this.outputStream = IOUtil.maybeBufferOutputStream(Files.newOutputStream(path));
+                this.outputFileName = path.getFileName().toString();
+            } else {
+                this.inputStream = IOUtil.maybeBufferInputStream(Files.newInputStream(path));
+                this.inputFileName = path.getFileName().toString();
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeIOException("File not found: " + path, e);
+        } catch (IOException e) {
+            throw new RuntimeIOException("IO error for " + path, e);
+        }
+    }
+
+    /**
      * Constructs BinaryCodec from a file and set it's mode to writing or not
      *
      * @param file    file to be written to or read from
      * @param writing whether the file is being written to
      */
     public BinaryCodec(final File file, final boolean writing) {
-        this();
-        try {
-            this.isWriting = writing;
-            if (this.isWriting) {
-                this.outputStream = IOUtil.maybeBufferOutputStream(new FileOutputStream(file));
-                this.outputFileName = file.getName();
-            } else {
-                this.inputStream = IOUtil.maybeBufferInputStream(new FileInputStream(file));
-                this.inputFileName = file.getName();
-            }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeIOException("File not found: " + file, e);
-        }
+        this(file.toPath(), writing);
     }
 
     /**
@@ -119,7 +133,15 @@ public class BinaryCodec implements Closeable {
      * @param writing  writing whether the file is being written to
      */
     public BinaryCodec(final String fileName, final boolean writing) {
-        this(new File(fileName), writing);
+        this(getPath(fileName), writing);
+    }
+
+    private final static Path getPath(final String fileName) {
+        try {
+            return IOUtil.getPath(fileName);
+        } catch (IOException e) {
+            throw new RuntimeIOException("Error getting path: " + fileName, e);
+        }
     }
 
     /**
