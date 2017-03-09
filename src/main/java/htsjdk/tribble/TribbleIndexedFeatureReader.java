@@ -244,7 +244,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
         PositionalBufferedStream pbs = null;
         try {
             is = ParsingUtils.openInputStream(path, wrapper);
-            if (hasBlockCompressedExtension(new URI(URLEncoder.encode(path, "UTF-8")))) {
+            if (Tribble.hasBlockCompressedExtension(new URI(URLEncoder.encode(path, "UTF-8")))) {
                 // TODO -- warning I don't think this can work, the buffered input stream screws up position
                 is = new GZIPInputStream(new BufferedInputStream(is));
             }
@@ -318,7 +318,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
             final InputStream inputStream = ParsingUtils.openInputStream(path, wrapper);
 
             final PositionalBufferedStream pbs;
-            if (hasBlockCompressedExtension(path)) {
+            if (Tribble.hasBlockCompressedExtension(path)) {
                 // Gzipped -- we need to buffer the GZIPInputStream methods as this class makes read() calls,
                 // and seekableStream does not support single byte reads
                 final InputStream is = new GZIPInputStream(new BufferedInputStream(inputStream, 512000));

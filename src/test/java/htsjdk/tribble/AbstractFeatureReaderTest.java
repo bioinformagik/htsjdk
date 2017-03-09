@@ -88,12 +88,12 @@ public class AbstractFeatureReaderTest {
 
     @Test(dataProvider = "blockCompressedExtensionExtensionStrings")
     public void testBlockCompressionExtensionString(final String testString, final boolean expected) {
-        Assert.assertEquals(AbstractFeatureReader.hasBlockCompressedExtension(testString), expected);
+        Assert.assertEquals(Tribble.hasBlockCompressedExtension(testString), expected);
     }
 
     @Test(dataProvider = "blockCompressedExtensionExtensionStrings")
     public void testBlockCompressionExtensionFile(final String testString, final boolean expected) {
-        Assert.assertEquals(AbstractFeatureReader.hasBlockCompressedExtension(new File(testString)), expected);
+        Assert.assertEquals(Tribble.hasBlockCompressedExtension(new File(testString)), expected);
     }
 
     @DataProvider(name = "blockCompressedExtensionExtensionURIStrings")
@@ -127,7 +127,7 @@ public class AbstractFeatureReaderTest {
     @Test(dataProvider = "blockCompressedExtensionExtensionURIStrings")
     public void testBlockCompressionExtension(final String testURIString, final boolean expected) throws URISyntaxException {
         URI testURI = URI.create(testURIString);
-        Assert.assertEquals(AbstractFeatureReader.hasBlockCompressedExtension(testURI), expected);
+        Assert.assertEquals(Tribble.hasBlockCompressedExtension(testURI), expected);
     }
 
 

@@ -445,7 +445,7 @@ public class IndexFactory {
 
                 // if this looks like a block compressed file and it in fact is, we will use it
                 // otherwise we will use the file as is
-                if (AbstractFeatureReader.hasBlockCompressedExtension(inputFile)) {
+                if (Tribble.hasBlockCompressedExtension(inputFile)) {
                     // make a buffered stream to test that this is in fact a valid block compressed file
                     final int bufferSize = Math.max(Defaults.BUFFER_SIZE, BlockCompressedStreamConstants.MAX_COMPRESSED_BLOCK_SIZE);
                     final BufferedInputStream bufferedStream = new BufferedInputStream(fileStream, bufferSize);

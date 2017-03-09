@@ -32,6 +32,7 @@ import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Md5CalculatingOutputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.AbstractFeatureReader;
+import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.IndexCreator;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndexCreator;
@@ -501,7 +502,7 @@ public class VariantContextWriterBuilder {
         if (outFile == null)
             return false;
 
-        return AbstractFeatureReader.hasBlockCompressedExtension(outFile);
+        return Tribble.hasBlockCompressedExtension(outFile);
     }
 
     private VariantContextWriter createVCFWriter(final File writerFile, final OutputStream writerStream) {

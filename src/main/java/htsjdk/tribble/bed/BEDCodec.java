@@ -25,6 +25,7 @@ package htsjdk.tribble.bed;
 
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
+import htsjdk.tribble.Tribble;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.readers.LineIterator;
@@ -202,7 +203,7 @@ public class BEDCodec extends AsciiFeatureCodec<BEDFeature> {
     @Override
     public boolean canDecode(final String path) {
         final String toDecode;
-        if (AbstractFeatureReader.hasBlockCompressedExtension(path)) {
+        if (Tribble.hasBlockCompressedExtension(path)) {
             toDecode = path.substring(0, path.lastIndexOf("."));
         } else {
             toDecode = path;
