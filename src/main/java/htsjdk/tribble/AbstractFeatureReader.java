@@ -57,8 +57,11 @@ public abstract class AbstractFeatureReader<T extends Feature, SOURCE> implement
 
     private static ComponentMethods methods = new ComponentMethods();
 
-    public static final Set<String> BLOCK_COMPRESSED_EXTENSIONS = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(".gz", ".gzip", ".bgz", ".bgzf")));
-
+    /**
+     * @deprecated on 03/2017. Use {@link Tribble#BLOCK_COMPRESSED_EXTENSIONS} instead.
+     */
+    @Deprecated
+    public static final Set<String> BLOCK_COMPRESSED_EXTENSIONS = Tribble.BLOCK_COMPRESSED_EXTENSIONS;
     /**
      * Calls {@link #getFeatureReader(String, FeatureCodec, boolean)} with {@code requireIndex} = true
      */
@@ -165,31 +168,33 @@ public abstract class AbstractFeatureReader<T extends Feature, SOURCE> implement
      * Whether a filename ends in one of the BLOCK_COMPRESSED_EXTENSIONS
      * @param fileName
      * @return
+     * @deprecated on 03/2017. Use {@link Tribble#hasBlockCompressedExtension(String)} instead.
      */
+    @Deprecated
     public static boolean hasBlockCompressedExtension (final String fileName) {
-        for (final String extension : BLOCK_COMPRESSED_EXTENSIONS) {
-            if (fileName.toLowerCase().endsWith(extension))
-                return true;
-        }
-        return false;
+        return Tribble.hasBlockCompressedExtension(fileName);
     }
 
     /**
      * Whether the name of a file ends in one of the BLOCK_COMPRESSED_EXTENSIONS
      * @param file
      * @return
+     * @deprecated on 03/2017. Use {@link Tribble#hasBlockCompressedExtension(File)}.
      */
+    @Deprecated
     public static boolean hasBlockCompressedExtension (final File file) {
-        return hasBlockCompressedExtension(file.getName());
+        return Tribble.hasBlockCompressedExtension(file);
     }
 
     /**
      * Whether the path of a URI resource ends in one of the BLOCK_COMPRESSED_EXTENSIONS
      * @param uri a URI representing the resource to check
      * @return
+     * @deprecated on 03/2017. Use {@link Tribble#hasBlockCompressedExtension(URI)}.
      */
+    @Deprecated
     public static boolean hasBlockCompressedExtension (final URI uri) {
-        return hasBlockCompressedExtension(uri.getPath());
+        return Tribble.hasBlockCompressedExtension(uri);
     }
 
     /**
@@ -214,7 +219,7 @@ public abstract class AbstractFeatureReader<T extends Feature, SOURCE> implement
         if(indexPath == null){
             indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
         }
-        return hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath);
+        return Tribble.hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath);
     }
 
     public static class ComponentMethods{

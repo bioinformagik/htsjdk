@@ -27,6 +27,12 @@ import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Common, tribble wide constants and static functions
@@ -34,7 +40,37 @@ import java.io.File;
 public class Tribble {
     private Tribble() { } // can't be instantiated
 
+    /** Standard index extension for Tribble indexes. */
     public final static String STANDARD_INDEX_EXTENSION = ".idx";
+
+    /** Block-compressed extensions supported in the Tribble package. */
+    public static final Set<String> BLOCK_COMPRESSED_EXTENSIONS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(".gz", ".gzip", ".bgz", ".bgzf")));
+
+    /**
+     * Whether a filename ends in one of the {@link #BLOCK_COMPRESSED_EXTENSIONS}.
+     */
+    public static boolean hasBlockCompressedExtension (final String fileName) {
+        for (final String extension : BLOCK_COMPRESSED_EXTENSIONS) {
+            if (fileName.toLowerCase().endsWith(extension))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether the name of a file ends in one of the {@link #BLOCK_COMPRESSED_EXTENSIONS}.
+     */
+    public static boolean hasBlockCompressedExtension (final File file) {
+        return hasBlockCompressedExtension(file.getName());
+    }
+
+    /**
+     * Whether the path of a URI resource ends in one of the {@link #BLOCK_COMPRESSED_EXTENSIONS}.
+     * @param uri a URI representing the resource to check
+     */
+    public static boolean hasBlockCompressedExtension (final URI uri) {
+        return hasBlockCompressedExtension(uri.getPath());
+    }
 
     /**
      * Return the name of the index file for the provided vcf {@code filename}
