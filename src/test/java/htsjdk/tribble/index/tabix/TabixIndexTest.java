@@ -165,6 +165,8 @@ public class TabixIndexTest {
         // write the index, and iterate over the copied file to check if the query works
         tabixIndexGz.writeBasedOnFeatureFile(tmpBed);
 
+        final TabixIndex loaded = new TabixIndex(new File(SMALL_BED_FILE.getAbsolutePath() + ".tbi"));
+
         try(final FeatureReader<BEDFeature> originalReader = AbstractFeatureReader.getFeatureReader(SMALL_BED_FILE.getAbsolutePath(), codec);
             final FeatureReader<BEDFeature> createdReader = AbstractFeatureReader.getFeatureReader(tmpBed.getAbsolutePath(), codec)) {
             // iterate over the expected intervals

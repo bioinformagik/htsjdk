@@ -100,6 +100,7 @@ public class TabixIndex implements Index {
         if (dis.readInt() != MAGIC_NUMBER) {
             throw new TribbleException(String.format("Unexpected magic number 0x%x", MAGIC_NUMBER));
         }
+        System.err.println("Reading index");
         final int numSequences = dis.readInt();
         indices = new BinningIndexContent[numSequences];
         formatSpec = new TabixFormat();
@@ -109,7 +110,19 @@ public class TabixIndex implements Index {
         formatSpec.endPositionColumn = dis.readInt();
         formatSpec.metaCharacter = (char) dis.readInt();
         formatSpec.numHeaderLinesToSkip = dis.readInt();
+
+
+
         final int nameBlockSize = dis.readInt();
+
+        System.err.println("Number of sequences: " + numSequences);
+        System.err.println("Format flag: " + formatSpec.flags);
+        System.err.println("Format sequence column: " + formatSpec.sequenceColumn);
+        System.err.println("Format start: " + formatSpec.startPositionColumn);
+        System.err.println("Format end: " + formatSpec.endPositionColumn);
+        System.err.println("Format meta: " + formatSpec.metaCharacter);
+        System.err.println("Length of sequence names: " + nameBlockSize);
+
         final byte[] nameBlock = new byte[nameBlockSize];
         if (dis.read(nameBlock) != nameBlockSize) throw new EOFException("Premature end of file reading Tabix header");
         final List<String> sequenceNames = new ArrayList<String>(numSequences);
@@ -119,6 +132,7 @@ public class TabixIndex implements Index {
             while (nameBlock[endPos] != '\0') ++endPos;
             sequenceNames.add(StringUtil.bytesToString(nameBlock, startPos, endPos - startPos));
             startPos = endPos + 1;
+            System.err.println("Sequence name: " + sequenceNames.get(i));
         }
         if (startPos != nameBlockSize) {
             throw new TribbleException("Tabix header format exception.  Sequence name block is longer than expected");
@@ -226,6 +240,7 @@ public class TabixIndex implements Index {
      */
     @Override
     public void write(final LittleEndianOutputStream los) throws IOException {
+        System.err.println("Writing index");
         los.writeInt(MAGIC_NUMBER);
         los.writeInt(sequenceNames.size());
         los.writeInt(formatSpec.flags);
@@ -237,9 +252,19 @@ public class TabixIndex implements Index {
         int nameBlockSize = sequenceNames.size(); // null terminators
         for (final String sequenceName : sequenceNames) nameBlockSize += sequenceName.length();
         los.writeInt(nameBlockSize);
+        // print it for debugging
+        System.err.println("Number of sequences: " + sequenceNames.size());
+        System.err.println("Format flag: " + formatSpec.flags);
+        System.err.println("Format sequence column: " + formatSpec.sequenceColumn);
+        System.err.println("Format start: " + formatSpec.startPositionColumn);
+        System.err.println("Format end: " + formatSpec.endPositionColumn);
+        System.err.println("Format meta: " + formatSpec.metaCharacter);
+        System.err.println("Length of sequence names: " + nameBlockSize);
+
         for (final String sequenceName : sequenceNames) {
             los.write(StringUtil.stringToBytes(sequenceName));
             los.write(0);
+            System.err.println("Sequence name: " + sequenceName);
         }
         for (final BinningIndexContent index : indices) {
             writeSequence(index, los);
@@ -249,9 +274,11 @@ public class TabixIndex implements Index {
     private void writeSequence(final BinningIndexContent indexContent, final LittleEndianOutputStream los) throws IOException {
         if (indexContent == null) {
             los.writeInt(0);
+            System.err.println("Non null bins: 0");
         } else {
             final BinningIndexContent.BinList binList = indexContent.getBins();
             los.writeInt(binList.numberOfNonNullBins);
+            System.err.println("Non null bins: " + binList.numberOfNonNullBins);
             for (final Bin bin : binList) {
                 writeBin(bin, los);
             }
@@ -266,16 +293,22 @@ public class TabixIndex implements Index {
         }
         final long[] entries = linearIndex.getIndexEntries();
         los.writeInt(entries.length);
+        System.err.println("Linear index entries: " + entries.length);
         for (final long entry : entries) los.writeLong(entry);
+        for (final long entry : entries) System.err.println("Index entry: " + entry);
     }
 
     private void writeBin(final Bin bin, final LittleEndianOutputStream los) throws IOException {
+        System.err.println("Bin: " + bin.getBinNumber());
         los.writeInt(bin.getBinNumber());
         final List<Chunk> chunkList = bin.getChunkList();
         los.writeInt(chunkList.size());
+        System.err.println("Number of chunks: " + chunkList.size());
         for (final Chunk chunk : chunkList) {
             los.writeLong(chunk.getChunkStart());
             los.writeLong(chunk.getChunkEnd());
+            System.err.println("Chunk start: " + chunk.getChunkStart());
+            System.err.println("Chunk end: " + chunk.getChunkEnd());
         }
     }
 
@@ -288,6 +321,7 @@ public class TabixIndex implements Index {
      */
     private BinningIndexContent loadSequence(final int referenceSequenceIndex, final LittleEndianInputStream dis) throws IOException {
         final int numBins = dis.readInt();
+        System.err.println("Bins: " + numBins);
         if (numBins == 0) return null;
         int nonNullBins = 0;
         final ArrayList<Bin> bins = new ArrayList<Bin>();
@@ -310,6 +344,7 @@ public class TabixIndex implements Index {
                 }
             }
         }
+        System.err.println("Non null bins: " + nonNullBins);
         final LinearIndex linearIndex = loadLinearIndex(referenceSequenceIndex, dis);
         return new BinningIndexContent(referenceSequenceIndex,
                 new BinningIndexContent.BinList(bins.toArray(new Bin[bins.size()]), nonNullBins), linearIndex);
@@ -326,8 +361,10 @@ public class TabixIndex implements Index {
 
     private Bin loadBin(final int referenceSequenceIndex, final LittleEndianInputStream dis) throws IOException {
         final int binNumber = dis.readInt();
+        System.err.println("Bin: " + binNumber);
         final Bin ret = new Bin(referenceSequenceIndex, binNumber);
         final int numChunks = dis.readInt();
+        System.err.println("Number of chunks: " + numChunks);
         final List<Chunk> chunkList = new ArrayList<Chunk>(numChunks);
         for (int i = 0; i < numChunks; ++i) {
             chunkList.add(loadChunk(dis));
@@ -339,6 +376,8 @@ public class TabixIndex implements Index {
     private Chunk loadChunk(final LittleEndianInputStream dis) throws IOException {
         final long start = dis.readLong();
         final long end = dis.readLong();
+        System.err.println("Chunk start: " + start);
+        System.err.println("Chunk end: " + end);
         return new Chunk(start, end);
     }
 
