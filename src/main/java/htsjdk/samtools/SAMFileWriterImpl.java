@@ -48,6 +48,8 @@ public abstract class SAMFileWriterImpl implements SAMFileWriter
 
     // If true, records passed to addAlignment are already in the order specified by sortOrder
     private boolean presorted;
+    // if true, for queryname sorted will only assess that the pairs are together
+    private boolean querynameCheckByPairs = false;
 
     // For validating presorted records.
     private SAMSortOrderChecker sortOrderChecker;
@@ -91,6 +93,19 @@ public abstract class SAMFileWriterImpl implements SAMFileWriter
         }
         this.sortOrder = sortOrder;
         this.presorted = presorted;
+    }
+
+    /**
+     * Must be called before calling setHeader().
+     *
+     * If {@code true} and presorted, check only if pairs are together up to {@link #maxRecordsInRam}.
+     * Default value is {@code false}, which perform an strict checking for name ordering.
+     */
+    public void setQuerynameCheckByPairs(final boolean querynameCheckByPairs) {
+        if (header != null) {
+            throw new IllegalStateException("Cannot call SAMFileWriterImpl.setRelaxQueryname after setHeader for " + getFilename());
+        }
+        this.querynameCheckByPairs = querynameCheckByPairs;
     }
 
     /**
@@ -145,6 +160,8 @@ public abstract class SAMFileWriterImpl implements SAMFileWriter
         if (presorted) {
             if (sortOrder.equals(SAMFileHeader.SortOrder.unsorted)) {
                 presorted = false;
+            } else if (querynameCheckByPairs && sortOrder.equals(SAMFileHeader.SortOrder.queryname)) {
+                sortOrderChecker = new SAMSortOrderChecker.SAMSortOrderByPairsChecker(maxRecordsInRam);
             } else {
                 sortOrderChecker = new SAMSortOrderChecker(sortOrder);
             }

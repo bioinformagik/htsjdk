@@ -55,6 +55,7 @@ public class SAMFileWriterFactory implements Cloneable {
     private SamFlagField samFlagFieldOutput = SamFlagField.NONE;
     private Integer maxRecordsInRam = null;
     private DeflaterFactory deflaterFactory = BlockCompressedOutputStream.getDefaultDeflaterFactory();
+    private boolean querynameCheckByPairs = false;
 
     /** simple constructor */
     public SAMFileWriterFactory() {
@@ -221,6 +222,17 @@ public class SAMFileWriterFactory implements Cloneable {
     }
 
     /**
+     * Controls stringency of queryname sorting checking if pre-sorted writer.
+     *
+     * If {@code true} and presorted, check only if pairs are together up to {@link #maxRecordsInRam}.
+     * Default value is {@code false}, which perform an strict checking for name ordering.
+     */
+    public SAMFileWriterFactory setQuerynameCheckByPairs(final boolean querynameCheckByPairs) {
+        this.querynameCheckByPairs = querynameCheckByPairs;
+        return this;
+    }
+
+    /**
      * Create a BAMFileWriter that is ready to receive SAMRecords.  Uses default compression level.
      *
      * @param header     entire header. Sort order is determined by the sortOrder property of this arg.
@@ -265,6 +277,7 @@ public class SAMFileWriterFactory implements Cloneable {
 
     private void initializeBAMWriter(final BAMFileWriter writer, final SAMFileHeader header, final boolean presorted, final boolean createIndex) {
         writer.setSortOrder(header.getSortOrder(), presorted);
+        writer.setQuerynameCheckByPairs(querynameCheckByPairs);
         if (maxRecordsInRam != null) {
             writer.setMaxRecordsInRam(maxRecordsInRam);
         }
@@ -295,6 +308,7 @@ public class SAMFileWriterFactory implements Cloneable {
                     new File(outputFile.getAbsolutePath() + ".md5")), samFlagFieldOutput)
                     : new SAMTextWriter(outputFile, samFlagFieldOutput);
             ret.setSortOrder(header.getSortOrder(), presorted);
+            ret.setQuerynameCheckByPairs(querynameCheckByPairs);
             if (maxRecordsInRam != null) {
                 ret.setMaxRecordsInRam(maxRecordsInRam);
             }
@@ -353,6 +367,7 @@ public class SAMFileWriterFactory implements Cloneable {
     private SAMFileWriter initWriter(final SAMFileHeader header, final boolean presorted, final boolean binary,
                                      final SAMFileWriterImpl writer) {
         writer.setSortOrder(header.getSortOrder(), presorted);
+        writer.setQuerynameCheckByPairs(querynameCheckByPairs);
         if (maxRecordsInRam != null) {
             writer.setMaxRecordsInRam(maxRecordsInRam);
         }
