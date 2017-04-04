@@ -23,13 +23,18 @@
  */
 package htsjdk.samtools;
 
+import htsjdk.samtools.util.Murmur3;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Encapsulates simple check for SAMRecord order.
  * @author alecw@broadinstitute.org
  */
 public class SAMSortOrderChecker {
     private final SAMFileHeader.SortOrder sortOrder;
-    private SAMRecord prev;
+    protected SAMRecord prev;
     private final SAMRecordComparator comparator;
 
     public SAMSortOrderChecker(final SAMFileHeader.SortOrder sortOrder) {
@@ -84,6 +89,57 @@ public class SAMSortOrderChecker {
             case unsorted:
             default:
                 return null;
+        }
+    }
+
+    /**
+     * {@link SAMSortOrderChecker} to allow checking of arbitrary queryname order, but keeping reads
+     * at least {@code maximumReadsToCheck} apart.
+     */
+    public static class SAMSortOrderByPairsChecker extends SAMSortOrderChecker {
+
+        private final Murmur3 hasher = new Murmur3(42);
+        private final List<Integer> readNameHashes;
+        private final int maximumReadsToCheck;
+
+        public SAMSortOrderByPairsChecker(final int maximumReadsToCheck) {
+            super(SAMFileHeader.SortOrder.coordinate);
+            this.maximumReadsToCheck = maximumReadsToCheck;
+            this.readNameHashes = new ArrayList<>(maximumReadsToCheck);
+        }
+
+        /**
+         * Returns {@code false} if and only if the hash for the record read name is saw before the
+         * last added; {@code true} otherwise.
+         */
+        @Override
+        public boolean isSorted(final SAMRecord rec) {
+            // gets the hash and the index of it
+            final int hash = hasher.hashUnencodedChars(rec.getReadName());
+            final int index = readNameHashes.indexOf(hash);
+
+            final boolean sorted;
+            if (index == -1) {
+                // if not found, add to the list (evicting if necessary)
+                if (readNameHashes.size() == maximumReadsToCheck) {
+                    readNameHashes.remove(0);
+                }
+                readNameHashes.add(hash);
+                // and it is sorted
+                sorted = true;
+            } else if (index == readNameHashes.size() - 1) {
+                // if it is the last index, it is correctly sorted
+                // and do not need to be added
+                sorted = true;
+            } else {
+                // otherwise, it is not sorted
+                // any new hash will be unsorted too
+                sorted = false;
+            }
+
+            // set the previous to the record
+            prev = rec;
+            return sorted;
         }
     }
 }
