@@ -270,6 +270,18 @@ public class IOUtil {
         return newTempFile(prefix, suffix, tmpDirs, FIVE_GBS);
     }
 
+    /** Returns a default tmp directory as a Path. */
+    public static Path getDefaultTmpDirPath() throws IOException {
+        final String user = System.getProperty("user.name");
+        final String tmp = System.getProperty("java.io.tmpdir");
+
+        final Path tmpParent = getPath(tmp);
+        if (tmpParent.endsWith(tmpParent.getFileSystem().getSeparator() + user)) {
+            return tmpParent;
+        } else {
+            return tmpParent.resolve(user);
+        }
+    }
 
     /** Returns a default tmp directory. */
     public static File getDefaultTmpDir() {
