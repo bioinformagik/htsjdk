@@ -59,7 +59,9 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
     public final static String PREMATURE_END_MSG = "Premature end of file: ";
     public final static String CANNOT_SEEK_STREAM_MSG = "Cannot seek on stream based file ";
     public final static String INVALID_FILE_PTR_MSG = "Invalid file pointer: ";
+    public final static String CLOSED_STREAM_MSG = "Stream was already closed";
 
+    private boolean isClosed = false;
     private InputStream mStream = null;
     private SeekableStream mFile = null;
     private byte[] mFileBuffer = null;
@@ -222,6 +224,8 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
         // Encourage garbage collection
         mFileBuffer = null;
         mCurrentBlock = null;
+        // mark as closed
+        isClosed = true;
     }
 
     /**
@@ -347,6 +351,9 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
      * @param pos virtual file pointer
      */
     public void seek(final long pos) throws IOException {
+        if (isClosed) {
+            throw new IOException(CLOSED_STREAM_MSG);
+        }
         if (mFile == null) {
             throw new IOException(CANNOT_SEEK_STREAM_MSG);
         }
